@@ -94,6 +94,7 @@ dependencies:
   fluttertoast: ^8.1.1
   google_nav_bar: ^5.0.5 #supported
   gradient_borders: ^1.0.0
+  hotkey_manager: ^0.2.3
   http: ^1.1.0
   hugeicons: ^1.1.0
   image: ^4.5.4

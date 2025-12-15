@@ -9,6 +9,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   flutter_inappwebview_windows
   flutter_local_authentication
   flutter_secure_storage_windows
+  hotkey_manager_windows
   local_auth_windows
   screen_retriever_windows
   sentry_flutter
