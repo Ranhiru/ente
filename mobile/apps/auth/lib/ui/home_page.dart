@@ -29,6 +29,7 @@ import 'package:ente_auth/ui/components/buttons/button_widget.dart';
 import 'package:ente_auth/ui/components/dialog_widget.dart';
 import 'package:ente_auth/ui/components/models/button_type.dart';
 import 'package:ente_auth/ui/components/note_dialog.dart';
+import 'package:ente_auth/ui/global_search/search_logic.dart';
 import 'package:ente_auth/ui/home/add_tag_sheet.dart';
 import 'package:ente_auth/ui/home/coach_mark_widget.dart';
 import 'package:ente_auth/ui/home/home_empty_state.dart';
@@ -1088,53 +1089,15 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _applyFilteringAndRefresh() {
-    if (_searchText.isNotEmpty && _showSearchBox && _allCodes != null) {
-      final String val = _searchText.toLowerCase();
-      // Prioritize issuer match above account for better UX while searching
-      // for a specific TOTP for email providers. Searching for "emailProvider" like (gmail, proton) should
-      // show the email provider first instead of other accounts where protonmail
-      // is the account name.
-      final List<Code> issuerMatch = [];
-      final List<Code> accountMatch = [];
-      final List<Code> noteMatch = [];
-
-      for (final Code codeState in _allCodes!) {
-        if (codeState.hasError ||
-            selectedTag != "" &&
-                !codeState.display.tags.contains(selectedTag) ||
-            (codeState.isTrashed != _isTrashOpen)) {
-          continue;
-        }
-
-        if (codeState.issuer.toLowerCase().contains(val)) {
-          issuerMatch.add(codeState);
-        } else if (codeState.account.toLowerCase().contains(val)) {
-          accountMatch.add(codeState);
-        } else if (codeState.note.toLowerCase().contains(val)) {
-          noteMatch.add(codeState);
-        }
-      }
-      _filteredCodes = issuerMatch;
-      _filteredCodes.addAll(accountMatch);
-      _filteredCodes.addAll(noteMatch);
-    } else if (_isTrashOpen) {
-      _filteredCodes = _allCodes
-              ?.where(
-                (element) => !element.hasError && element.isTrashed,
-              )
-              .toList() ??
-          [];
+    if (_allCodes != null) {
+      _filteredCodes = SearchLogic.filter(
+        _allCodes!,
+        _searchText,
+        selectedTag: selectedTag,
+        isTrashOpen: _isTrashOpen,
+      );
     } else {
-      _filteredCodes = _allCodes
-              ?.where(
-                (element) =>
-                    !element.hasError &&
-                    !element.isTrashed &&
-                    (selectedTag == "" ||
-                        element.display.tags.contains(selectedTag)),
-              )
-              .toList() ??
-          [];
+      _filteredCodes = [];
     }
 
     sortFilteredCodes(_filteredCodes, _codeSortKey);

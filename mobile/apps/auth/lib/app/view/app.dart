@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:ente_accounts/services/user_service.dart';
+import 'package:ente_auth/app/services/global_search_service.dart';
 import 'package:ente_auth/core/configuration.dart';
 import 'package:ente_auth/ente_theme_data.dart';
 import 'package:ente_auth/l10n/l10n.dart';
@@ -12,6 +13,7 @@ import 'package:ente_auth/services/authenticator_service.dart';
 import 'package:ente_auth/services/preference_service.dart';
 import 'package:ente_auth/services/update_service.dart';
 import 'package:ente_auth/services/window_listener_service.dart';
+import 'package:ente_auth/ui/global_search/global_search_window.dart';
 import 'package:ente_auth/ui/home_page.dart';
 import 'package:ente_auth/ui/settings/app_update_dialog.dart';
 import 'package:ente_events/event_bus.dart';
@@ -170,10 +172,16 @@ class _AppState extends State<App>
 
   Map<String, WidgetBuilder> get _getRoutes {
     return {
-      "/": (context) => Configuration.instance.hasConfiguredAccount() ||
-              Configuration.instance.hasOptedForOfflineMode()
-          ? const HomePage()
-          : const OnboardingPage(),
+      "/": (context) => ValueListenableBuilder<bool>(
+            valueListenable: GlobalSearchService.instance.isMiniMode,
+            builder: (context, isMini, child) {
+              if (isMini) return const GlobalSearchWindow();
+              return Configuration.instance.hasConfiguredAccount() ||
+                      Configuration.instance.hasOptedForOfflineMode()
+                  ? const HomePage()
+                  : const OnboardingPage();
+            },
+          ),
     };
   }
 

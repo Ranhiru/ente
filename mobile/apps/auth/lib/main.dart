@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:ente_accounts/services/user_service.dart';
+import 'package:ente_auth/app/services/global_search_service.dart';
 import "package:ente_auth/app/view/app.dart";
 import 'package:ente_auth/core/configuration.dart';
 import 'package:ente_auth/core/constants.dart';
@@ -74,6 +75,7 @@ void main() async {
 
   if (PlatformUtil.isDesktop()) {
     await windowManager.ensureInitialized();
+    await GlobalSearchService.instance.init();
     await WindowListenerService.instance.init();
     await windowManager.setPreventClose(true);
     WindowOptions windowOptions = WindowOptions(
