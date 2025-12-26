@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:ente_accounts/services/user_service.dart';
-import 'package:ente_auth/app/services/global_search_service.dart';
+import 'package:ente_auth/app/services/mini_mode_service.dart';
 import 'package:ente_auth/core/configuration.dart';
 import 'package:ente_auth/ente_theme_data.dart';
 import 'package:ente_auth/l10n/l10n.dart';
@@ -173,7 +173,7 @@ class _AppState extends State<App>
   Map<String, WidgetBuilder> get _getRoutes {
     return {
       "/": (context) => ValueListenableBuilder<bool>(
-            valueListenable: GlobalSearchService.instance.isMiniMode,
+            valueListenable: MiniModeService.instance.isMiniMode,
             builder: (context, isMini, child) {
               if (isMini) return const GlobalSearchWindow();
               return Configuration.instance.hasConfiguredAccount() ||

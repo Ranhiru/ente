@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'package:clipboard/clipboard.dart';
-import 'package:ente_auth/app/services/global_search_service.dart';
+import 'package:ente_auth/app/services/mini_mode_service.dart';
 import 'package:ente_auth/models/code.dart';
 import 'package:ente_auth/store/code_store.dart';
 import 'package:ente_auth/theme/ente_theme.dart';
+import 'package:ente_auth/ui/common/totp_text_widget.dart';
 import 'package:ente_auth/ui/global_search/search_logic.dart';
 import 'package:ente_auth/ui/utils/icon_utils.dart';
 import 'package:ente_auth/utils/totp_util.dart';
@@ -18,6 +19,7 @@ class GlobalSearchWindow extends StatefulWidget {
 }
 
 class _GlobalSearchWindowState extends State<GlobalSearchWindow> {
+  static const double _itemHeight = 72.0;
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();
@@ -58,7 +60,7 @@ class _GlobalSearchWindowState extends State<GlobalSearchWindow> {
 
   void _handleCopy(Code code) {
     final totp = getOTP(code);
-    GlobalSearchService.instance.exitMiniMode();
+    MiniModeService.instance.exitMiniMode();
     FlutterClipboard.copy(totp);
   }
 
@@ -81,24 +83,22 @@ class _GlobalSearchWindowState extends State<GlobalSearchWindow> {
           _handleCopy(_filteredCodes[_selectedIndex]);
         }
       } else if (event.logicalKey == LogicalKeyboardKey.escape) {
-        GlobalSearchService.instance.exitMiniMode();
+        MiniModeService.instance.exitMiniMode();
       }
     }
   }
 
   void _scrollToSelected() {
     if (_scrollController.hasClients) {
-      const itemHeight = 72.0; // Approximation
-      final offset = _selectedIndex * itemHeight;
+      final offset = _selectedIndex * _itemHeight;
       if (offset < _scrollController.offset) {
         _scrollController.jumpTo(offset);
-      }
-      else if (offset + itemHeight >
+      } else if (offset + _itemHeight >
           _scrollController.offset +
               _scrollController.position.viewportDimension) {
-        _scrollController.jumpTo(offset +
-            itemHeight -
-            _scrollController.position.viewportDimension,);
+        _scrollController.jumpTo(
+          offset + _itemHeight - _scrollController.position.viewportDimension,
+        );
       }
     }
   }
@@ -149,13 +149,14 @@ class _GlobalSearchWindowState extends State<GlobalSearchWindow> {
                               style: textTheme.body,),)
                       : ListView.builder(
                           controller: _scrollController,
+                          itemExtent: _itemHeight,
                           itemCount: _filteredCodes.length,
                           itemBuilder: (context, index) {
                             final code = _filteredCodes[index];
                             final isSelected = index == _selectedIndex;
                             return Container(
                               color: isSelected
-                                  ? colorScheme.backgroundElevated2
+                                  ? colorScheme.primary400.withValues(alpha: 0.10)
                                   : null,
                               child: ListTile(
                                 leading: IconUtils.instance.getIcon(
@@ -169,7 +170,7 @@ class _GlobalSearchWindowState extends State<GlobalSearchWindow> {
                                     style: textTheme.h3,),
                                 subtitle: Text(code.account,
                                     style: textTheme.body,),
-                                trailing: _DynamicTotpText(
+                                trailing: TotpTextWidget(
                                   code: code,
                                   style: textTheme.body.copyWith(fontSize: 14),
                                 ),
@@ -191,48 +192,5 @@ class _GlobalSearchWindowState extends State<GlobalSearchWindow> {
     _searchFocusNode.dispose();
     _scrollController.dispose();
     super.dispose();
-  }
-}
-
-class _DynamicTotpText extends StatefulWidget {
-  final Code code;
-  final TextStyle? style;
-
-  const _DynamicTotpText({
-    required this.code,
-    this.style,
-  });
-
-  @override
-  State<_DynamicTotpText> createState() => _DynamicTotpTextState();
-}
-
-class _DynamicTotpTextState extends State<_DynamicTotpText> {
-  Timer? _timer;
-
-  @override
-  void initState() {
-    super.initState();
-    _startTimer();
-  }
-
-  void _startTimer() {
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (mounted) setState(() {});
-    });
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      getOTP(widget.code),
-      style: widget.style,
-    );
   }
 }

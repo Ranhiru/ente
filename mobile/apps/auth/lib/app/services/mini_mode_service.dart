@@ -5,11 +5,11 @@ import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:logging/logging.dart';
 import 'package:window_manager/window_manager.dart';
 
-class GlobalSearchService with WindowListener {
-  static final GlobalSearchService instance = GlobalSearchService._privateConstructor();
-  GlobalSearchService._privateConstructor();
+class MiniModeService with WindowListener {
+  static final MiniModeService instance = MiniModeService._privateConstructor();
+  MiniModeService._privateConstructor();
 
-  final Logger _logger = Logger("GlobalSearchService");
+  final Logger _logger = Logger("MiniModeService");
 
   // State
   final ValueNotifier<bool> isMiniMode = ValueNotifier(false);
@@ -50,12 +50,8 @@ class GlobalSearchService with WindowListener {
   @override
   void onWindowBlur() {
     if (isMiniMode.value && !_isTransitioning) {
-      _autoClose();
+      exitMiniMode(restoreFocus: false, hide: true);
     }
-  }
-
-  Future<void> _autoClose() async {
-    await exitMiniMode(restoreFocus: false, hide: true);
   }
   
   Future<void> _toggleMiniMode() async {
@@ -82,9 +78,9 @@ class GlobalSearchService with WindowListener {
     
     isMiniMode.value = true;
     
-    // Resize and Center
-    // Assuming 600x400 for mini mode
-    await windowManager.setSize(const Size(600, 400));
+    Size size = const Size(600, 450);
+    await windowManager.setSize(size);
+
     await windowManager.center();
     await windowManager.setSkipTaskbar(true);
     await windowManager.setAlwaysOnTop(true);
@@ -102,6 +98,7 @@ class GlobalSearchService with WindowListener {
 
     if (hide) {
       await windowManager.hide();
+      await Future.delayed(const Duration(milliseconds: 200));
     }
 
     isMiniMode.value = false;
