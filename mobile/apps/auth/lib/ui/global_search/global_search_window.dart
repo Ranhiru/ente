@@ -107,12 +107,13 @@ class _GlobalSearchWindowState extends State<GlobalSearchWindow> {
   Widget build(BuildContext context) {
     final colorScheme = getEnteColorScheme(context);
     final textTheme = getEnteTextTheme(context);
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return KeyboardListener(
       focusNode: FocusNode(),
       onKeyEvent: _handleKeyDown,
       child: Scaffold(
-        backgroundColor: colorScheme.backgroundBase,
+        backgroundColor: isDarkMode ? colorScheme.fillFaint : colorScheme.backgroundElevated2,
         body: Column(
           children: [
             Padding(
@@ -127,7 +128,7 @@ class _GlobalSearchWindowState extends State<GlobalSearchWindow> {
                       textTheme.body.copyWith(color: colorScheme.textFaint),
                   prefixIcon: Icon(Icons.search, color: colorScheme.textBase),
                   filled: true,
-                  fillColor: colorScheme.backgroundElevated2,
+                  fillColor: isDarkMode ? colorScheme.backgroundElevated2 : colorScheme.backgroundBase,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
@@ -156,7 +157,7 @@ class _GlobalSearchWindowState extends State<GlobalSearchWindow> {
                             final isSelected = index == _selectedIndex;
                             return Container(
                               color: isSelected
-                                  ? colorScheme.primary400.withValues(alpha: 0.10)
+                                  ? colorScheme.primary400.withValues(alpha: isDarkMode ? 0.15 : 0.20)
                                   : null,
                               child: ListTile(
                                 leading: IconUtils.instance.getIcon(
