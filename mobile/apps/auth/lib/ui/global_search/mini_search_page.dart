@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:clipboard/clipboard.dart';
 import 'package:ente_auth/app/services/mini_mode_service.dart';
+import 'package:ente_auth/l10n/l10n.dart';
 import 'package:ente_auth/models/code.dart';
 import 'package:ente_auth/store/code_store.dart';
 import 'package:ente_auth/theme/ente_theme.dart';
@@ -11,14 +12,14 @@ import 'package:ente_auth/utils/totp_util.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-class GlobalSearchWindow extends StatefulWidget {
-  const GlobalSearchWindow({super.key});
+class MiniSearchPage extends StatefulWidget {
+  const MiniSearchPage({super.key});
 
   @override
-  State<GlobalSearchWindow> createState() => _GlobalSearchWindowState();
+  State<MiniSearchPage> createState() => _MiniSearchPageState();
 }
 
-class _GlobalSearchWindowState extends State<GlobalSearchWindow> {
+class _MiniSearchPageState extends State<MiniSearchPage> {
   static const double _itemHeight = 72.0;
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
@@ -62,6 +63,12 @@ class _GlobalSearchWindowState extends State<GlobalSearchWindow> {
     final totp = getOTP(code);
     MiniModeService.instance.exitMiniMode();
     FlutterClipboard.copy(totp);
+  }
+
+  void _handleNextHotp(Code code) {
+    final newCode = code.copyWith(counter: code.counter + 1);
+    CodeStore.instance.addCode(newCode, shouldSync: true).ignore();
+    _handleCopy(newCode);
   }
 
   void _handleKeyDown(KeyEvent event) {
@@ -171,9 +178,27 @@ class _GlobalSearchWindowState extends State<GlobalSearchWindow> {
                                     style: textTheme.h3,),
                                 subtitle: Text(code.account,
                                     style: textTheme.body,),
-                                trailing: TotpTextWidget(
-                                  code: code,
-                                  style: textTheme.body.copyWith(fontSize: 14),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (code.type == Type.hotp)
+                                      IconButton(
+                                        visualDensity: VisualDensity.compact,
+                                        icon: Icon(
+                                          Icons.forward_outlined,
+                                          size: 20,
+                                          color: colorScheme.textMuted,
+                                        ),
+                                        onPressed: () =>
+                                            _handleNextHotp(code),
+                                        tooltip: context.l10n.nextTotpTitle,
+                                      ),
+                                    TotpTextWidget(
+                                      code: code,
+                                      style:
+                                          textTheme.body.copyWith(fontSize: 14),
+                                    ),
+                                  ],
                                 ),
                                 onTap: () => _handleCopy(code),
                               ),

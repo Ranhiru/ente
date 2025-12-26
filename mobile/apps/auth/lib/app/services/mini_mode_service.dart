@@ -11,12 +11,10 @@ class MiniModeService with WindowListener {
 
   final Logger _logger = Logger("MiniModeService");
 
-  // State
   final ValueNotifier<bool> isMiniMode = ValueNotifier(false);
   Size? _previousSize;
   Offset? _previousPosition;
   bool _isInitialized = false;
-  DateTime _lastToggleTime = DateTime.fromMillisecondsSinceEpoch(0);
   bool _isTransitioning = false;
 
   Future<void> init() async {
@@ -24,15 +22,21 @@ class MiniModeService with WindowListener {
     
     windowManager.addListener(this);
 
-    await hotKeyManager.unregisterAll();
+    await registerHotkey();
     
+    _isInitialized = true;
+  }
+
+  Future<void> registerHotkey() async {
+    await hotKeyManager.unregisterAll();
+
     // Register Default Hotkey (Cmd+Shift+Space)
     HotKey hotKey = HotKey(
       key: LogicalKeyboardKey.space,
       modifiers: [HotKeyModifier.meta, HotKeyModifier.shift],
       scope: HotKeyScope.system,
     );
-    
+
     try {
       await hotKeyManager.register(
         hotKey,
@@ -43,8 +47,6 @@ class MiniModeService with WindowListener {
     } catch (e) {
       _logger.severe("Failed to register hotkey", e);
     }
-    
-    _isInitialized = true;
   }
 
   @override
@@ -55,12 +57,6 @@ class MiniModeService with WindowListener {
   }
   
   Future<void> _toggleMiniMode() async {
-    final now = DateTime.now();
-    if (now.difference(_lastToggleTime).inMilliseconds < 300) {
-      return;
-    }
-    _lastToggleTime = now;
-
     if (isMiniMode.value) {
       await exitMiniMode();
     } else {
@@ -78,6 +74,10 @@ class MiniModeService with WindowListener {
     
     isMiniMode.value = true;
     
+    await showMiniWindow();
+  }
+
+  Future<void> showMiniWindow() async {
     Size size = const Size(600, 450);
     await windowManager.setSize(size);
 
@@ -86,7 +86,7 @@ class MiniModeService with WindowListener {
     await windowManager.setAlwaysOnTop(true);
     await windowManager.show();
     await windowManager.focus();
-    
+
     // Allow window state to settle
     Future.delayed(const Duration(milliseconds: 500), () {
       _isTransitioning = false;
